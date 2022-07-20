@@ -9,9 +9,12 @@ To create the `data.json` file that contains the data.
 import os
 import json
 from typing import Dict, List, Optional, Union, cast
-import requests
+from requests import get
+from bs4 import BeautifulSoup
+import time
 
 from env import github_token, github_username
+#note
 
 # TODO: Make a github personal access token.
 #     1. Go here and generate a personal access token: https://github.com/settings/tokens
@@ -20,11 +23,24 @@ from env import github_token, github_username
 # TODO: Add your github username to your env.py file under the variable `github_username`
 # TODO: Add more repositories to the `REPOS` list below.
 
-REPOS = [
-    "gocodeup/codeup-setup-script",
-    "gocodeup/movies-application",
-    "torvalds/linux",
-]
+def get_repos(n):
+    all_repos = []
+    for page in range(1, n):
+        url = f'https://github.com/search?p={page}&q=poker&type=Repositories'
+        headers = {"Authorization": f"token {github_token}", "User-Agent": github_username}
+        while True:
+            response = get(url, headers=headers)
+            if response.ok:
+                break
+            else:
+                time.sleep(15)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        repo = [a.text for a in soup.find_all('a', class_='v-align-middle')]
+        all_repos.append(repo)
+        print(f'\rFetching page {page} of {n-1} {url}', end='')
+    return all_repos
+
+REPOS = get_repos(51)
 
 headers = {"Authorization": f"token {github_token}", "User-Agent": github_username}
 
