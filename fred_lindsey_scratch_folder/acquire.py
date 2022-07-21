@@ -36,7 +36,7 @@ def get_repos(n):
                 time.sleep(15)
         soup = BeautifulSoup(response.text, 'html.parser')
         repo = [a.text for a in soup.find_all('a', class_='v-align-middle')]
-        all_repos.append(repo)
+        all_repos = all_repos + repo
         print(f'\rFetching page {page} of {n-1} {url}', end='')
     return all_repos
 
