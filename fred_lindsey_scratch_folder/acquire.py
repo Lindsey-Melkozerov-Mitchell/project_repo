@@ -7,11 +7,13 @@ After doing so, run it like this:
 To create the `data.json` file that contains the data.
 """
 import os
+import requests
 import json
 from typing import Dict, List, Optional, Union, cast
 from requests import get
 from bs4 import BeautifulSoup
 import time
+import pandas as pd
 
 from env import github_token, github_username
 #note
@@ -23,7 +25,12 @@ from env import github_token, github_username
 # TODO: Add your github username to your env.py file under the variable `github_username`
 # TODO: Add more repositories to the `REPOS` list below.
 
-def get_repos(n):
+def get_repos(n, use_cache=True):
+    filename = "poker_scrape.csv"
+    if os.path.isfile(filename) and use_cache:
+        # .values returns a list of values from Series, instead of
+        # a Series, which this acquire cannot process.
+        return pd.read_csv(filename).values
     all_repos = []
     for page in range(1, n):
         url = f'https://github.com/search?p={page}&q=poker&type=Repositories'
@@ -38,19 +45,21 @@ def get_repos(n):
         repo = [a.text for a in soup.find_all('a', class_='v-align-middle')]
         all_repos = all_repos + repo
         print(f'\rFetching page {page} of {n-1} {url}', end='')
+    all_repos_series = pd.Series(all_repos)
+    all_repos_series.to_csv(filename, index=False)
     return all_repos
 
-REPOS = get_repos(51)
 
-headers = {"Authorization": f"token {github_token}", "User-Agent": github_username}
 
-if headers["Authorization"] == "token " or headers["User-Agent"] == "":
-    raise Exception(
-        "You need to follow the instructions marked TODO in this script before trying to use it"
-    )
+
+#if headers["Authorization"] == "token " or headers["User-Agent"] == "":
+#    raise Exception(
+#        "You need to follow the instructions marked TODO in this script before trying to use it"
+#    )
 
 
 def github_api_request(url: str) -> Union[List, Dict]:
+    headers = {"Authorization": f"token {github_token}", "User-Agent": github_username}
     response = requests.get(url, headers=headers)
     response_data = response.json()
     if response.status_code != 200:
@@ -120,6 +129,9 @@ def scrape_github_data() -> List[Dict[str, str]]:
     """
     Loop through all of the repos and process them. Returns the processed data.
     """
+    REPOS = get_repos(51)
+    REPOS = [re for rep in REPOS for re in rep]
+    print(REPOS)
     return [process_repo(repo) for repo in REPOS]
 
 
