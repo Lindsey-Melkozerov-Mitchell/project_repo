@@ -8,6 +8,8 @@ To create the `data.json` file that contains the data.
 """
 import os
 import json
+import requests
+#error that lead here was the script not properly importing requests
 from typing import Dict, List, Optional, Union, cast
 from requests import get
 from bs4 import BeautifulSoup
@@ -36,11 +38,11 @@ def get_repos(n):
                 time.sleep(15)
         soup = BeautifulSoup(response.text, 'html.parser')
         repo = [a.text for a in soup.find_all('a', class_='v-align-middle')]
-        all_repos.append(repo)
+        all_repos = all_repos + repo
         print(f'\rFetching page {page} of {n-1} {url}', end='')
     return all_repos
 
-REPOS = get_repos(100)
+REPOS = get_repos(51)
 
 headers = {"Authorization": f"token {github_token}", "User-Agent": github_username}
 
@@ -126,3 +128,4 @@ def scrape_github_data() -> List[Dict[str, str]]:
 if __name__ == "__main__":
     data = scrape_github_data()
     json.dump(data, open("data.json", "w"), indent=1)
+    
