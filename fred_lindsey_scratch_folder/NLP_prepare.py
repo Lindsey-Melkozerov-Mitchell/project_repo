@@ -73,11 +73,10 @@ def prepare_shorts(Series):
     Function: .lower, normalize, remove non-ASCII, stem, lem
     Returns: Cleaned, stemmed, lemmatized Series in a DF, along with original text"""
     original_content = []
-    clean_content = []
+    #clean_content = []
     stemmed_content = []
     lemmed_content = []
     shorts_dict = {'content': original_content,
-    'cleaned_content': clean_content,
     'stemmed_content': stemmed_content,
     'lemmed_content': lemmed_content}
     for i in range(0, len(Series)):
@@ -100,7 +99,7 @@ def prepare_shorts(Series):
         tokenizer = nltk.tokenize.ToktokTokenizer()
         tokenizer.tokenize(content, return_str=True)
         # add the tokenized text to the list 'clean_content'
-        clean_content.append(content)
+        #clean_content.append(content)
         # stems are the base of words, call: calls, called, calling
         # to stem, create the object first:
         ps = nltk.porter.PorterStemmer()
