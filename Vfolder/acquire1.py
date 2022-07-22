@@ -9,7 +9,10 @@ To create the `data.json` file that contains the data.
 import os
 import json
 from typing import Dict, List, Optional, Union, cast
-import requests
+import requests 
+from requests import get
+from bs4 import BeautifulSoup
+import time
 
 from env import github_token, github_username
 
@@ -20,19 +23,38 @@ from env import github_token, github_username
 # TODO: Add your github username to your env.py file under the variable `github_username`
 # TODO: Add more repositories to the `REPOS` list below.
 
-REPOS = [
-    "dickreuter/Poker",     #https://github.com/dickreuter/Poker
-    "pokerregion/poker",         #https://github.com/pokerregion/poker
-    "ishikota/PyPokerEngine",              #https://github.com/ishikota/PyPokerEngine
-    "andrewprock/pokerstove",               #https://github.com/andrewprock/pokerstove
-    "mdp/JsPoker",          #https://github.com/mdp/JsPoker
-    "Jeremiah9000/Poker-with-Python",           #https://github.com/Jeremiah9000/Poker-with-Python
-    "ginuerzh/poker",           #https://github.com/ginuerzh/poker
-    "rundef/node-poker-odds-calculator",        #https://github.com/rundef/node-poker-odds-calculator
-    "datamllab/rlcard",             #https://github.com/datamllab/rlcard
-    "Wizehive/firepoker",           #https://github.com/Wizehive/firepoker
-    "HHSmithy/PokerHandHistoryParser"          #https://github.com/HHSmithy/PokerHandHistoryParser
-]
+def get_repos(n):
+    all_repos = []
+    for page in range(1, n):
+        url = f'https://github.com/search?p={page}&q=poker&type=Repositories'
+        headers = {"Authorization": f"token {github_token}", "User-Agent": github_username}
+        while True:
+            response = get(url, headers=headers)
+            if response.ok:
+                break
+            else:
+                time.sleep(15)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        repo = [a.text for a in soup.find_all('a', class_='v-align-middle')]
+        all_repos.append(repo)
+        print(f'\rFetching page {page} of {n-1} {url}', end='')
+    return all_repos
+
+REPOS = get_repos(100)
+
+# REPOS = [
+#     "dickreuter/Poker",     #https://github.com/dickreuter/Poker
+#     "pokerregion/poker",         #https://github.com/pokerregion/poker
+#     "ishikota/PyPokerEngine",              #https://github.com/ishikota/PyPokerEngine
+#     "andrewprock/pokerstove",               #https://github.com/andrewprock/pokerstove
+#     "mdp/JsPoker",          #https://github.com/mdp/JsPoker
+#     "Jeremiah9000/Poker-with-Python",           #https://github.com/Jeremiah9000/Poker-with-Python
+#     "ginuerzh/poker",           #https://github.com/ginuerzh/poker
+#     "rundef/node-poker-odds-calculator",        #https://github.com/rundef/node-poker-odds-calculator
+#     "datamllab/rlcard",             #https://github.com/datamllab/rlcard
+#     "Wizehive/firepoker",           #https://github.com/Wizehive/firepoker
+#     "HHSmithy/PokerHandHistoryParser"          #https://github.com/HHSmithy/PokerHandHistoryParser
+# ]
 
 headers = {"Authorization": f"token {github_token}", "User-Agent": github_username}
 
