@@ -24,6 +24,19 @@ def get_NLP_df():
     return df
 
 #________________________________________________________________________________________________________________________________
+def remove_stopwords(string, extra_words = [], exclude_words = []):
+    additional_stopwords = ['github', 'http', 'code']
+    nltk.download('wordnet')
+    nltk.download('stopwords')
+    stopword_list = stopwords.words('english') + additional_stopwords
+    stopword_list = set(stopword_list) - set(exclude_words)
+    stopword_list = stopword_list.union(set(extra_words))
+    words = string.split()
+    filtered_words = [word for word in words if word not in stopword_list]
+    string_without_stopwords = ' '.join(filtered_words)
+    return string_without_stopwords
+
+#________________________________________________________________________________________________________________________________
 
 # prepare the DF
 
@@ -54,6 +67,9 @@ def prepare_poker(Series):
         .decode('utf-8', 'ignore')
         # remove non-standard alphanumeric characters
         content = re.sub(r"[^a-z0-9'\s]", '', content)
+        # remove stopwords
+        stopwords = nltk.corpus.stopwords.words('english')
+        content = remove_stopwords(content)
         # tokenization:
         # break words and punctuation left over into discrete units
         tokenizer = nltk.tokenize.ToktokTokenizer()
@@ -79,3 +95,4 @@ def prepare_poker(Series):
     return df
 
 #________________________________________________________________________________________________________________________________
+
