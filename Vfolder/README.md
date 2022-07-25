@@ -18,6 +18,15 @@ The purpose and goal of this project is to be able to model programming language
 - Find leading words indicating language
 - A machine learning model that can guess the programming language
 
+
+|Feature|Datatype|Definition|
+|:_______|:________|:__________|
+| repo | 500 non-null: object | Name of repository |
+| language | 481 non-null: object | Programming language most used |
+| readme_contents | 500 non-null: object | Repository repos |
+
+
+
 ## How to reproduce:
 1. Clone the repository
 
