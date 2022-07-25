@@ -40,7 +40,7 @@ def get_repos(n):
         print(f'\rFetching page {page} of {n-1} {url}', end='')
     return all_repos
 
-REPOS = get_repos(100)
+REPOS = get_repos(5000)
 
 # REPOS = [
 #     "dickreuter/Poker",     #https://github.com/dickreuter/Poker
