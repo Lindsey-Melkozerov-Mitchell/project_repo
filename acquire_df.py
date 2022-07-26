@@ -20,7 +20,7 @@ from nltk.corpus import stopwords
 #acquire the DF
 
 def get_NLP_df():
-    df = pd.read_json("data.json")
+    df = pd.read_json("data2.json")
     return df
 
 #________________________________________________________________________________________________________________________________
@@ -49,7 +49,7 @@ def prepare_poker(Series):
     #clean_content = []
     stemmed_content = []
     lemmed_content = []
-    blogs_dict = {'content': original_content,
+    repos_dict = {'content': original_content,
     'stemmed_content': stemmed_content,
     'lemmed_content': lemmed_content}
     for i in range(0, len(Series)):
@@ -91,7 +91,7 @@ def prepare_poker(Series):
         content_lemmatized = ' '.join(lemmas)
         # add lemmed content to list:
         lemmed_content.append(content_lemmatized)
-    df = pd.DataFrame(blogs_dict)
+    df = pd.DataFrame(repos_dict)
     return df
 
 #________________________________________________________________________________________________________________________________

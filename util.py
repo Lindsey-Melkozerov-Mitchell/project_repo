@@ -51,11 +51,16 @@ After doing so, run it like this:
 To create the `data.json` file that contains the data.
 """
 import os
+import requests
 import json
 from typing import Dict, List, Optional, Union, cast
-import requests
+from requests import get
+from bs4 import BeautifulSoup
+import time
+import pandas as pd
 
 from env import github_token, github_username
+#note
 
 # TODO: Make a github personal access token.
 #     1. Go here and generate a personal access token: https://github.com/settings/tokens
@@ -64,21 +69,41 @@ from env import github_token, github_username
 # TODO: Add your github username to your env.py file under the variable `github_username`
 # TODO: Add more repositories to the `REPOS` list below.
 
-REPOS = [
-    "gocodeup/codeup-setup-script",
-    "gocodeup/movies-application",
-    "torvalds/linux",
-]
+def get_repos(n, use_cache=True):
+    filename = "poker_scrape.csv"
+    if os.path.isfile(filename) and use_cache:
+        # .values returns a list of values from Series, instead of
+        # a Series, which this acquire cannot process.
+        return pd.read_csv(filename).values
+    all_repos = []
+    for page in range(1, n):
+        url = f'https://github.com/search?p={page}&q=poker&type=Repositories'
+        headers = {"Authorization": f"token {github_token}", "User-Agent": github_username}
+        while True:
+            response = get(url, headers=headers)
+            if response.ok:
+                break
+            else:
+                time.sleep(15)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        repo = [a.text for a in soup.find_all('a', class_='v-align-middle')]
+        all_repos = all_repos + repo
+        print(f'\rFetching page {page} of {n-1} {url}', end='')
+    all_repos_series = pd.Series(all_repos)
+    all_repos_series.to_csv(filename, index=False)
+    return all_repos
 
-headers = {"Authorization": f"token {github_token}", "User-Agent": github_username}
 
-if headers["Authorization"] == "token " or headers["User-Agent"] == "":
-    raise Exception(
-        "You need to follow the instructions marked TODO in this script before trying to use it"
-    )
+
+
+#if headers["Authorization"] == "token " or headers["User-Agent"] == "":
+#    raise Exception(
+#        "You need to follow the instructions marked TODO in this script before trying to use it"
+#    )
 
 
 def github_api_request(url: str) -> Union[List, Dict]:
+    headers = {"Authorization": f"token {github_token}", "User-Agent": github_username}
     response = requests.get(url, headers=headers)
     response_data = response.json()
     if response.status_code != 200:
@@ -148,14 +173,20 @@ def scrape_github_data() -> List[Dict[str, str]]:
     """
     Loop through all of the repos and process them. Returns the processed data.
     """
+    REPOS = get_repos(51)
+    REPOS = [re for rep in REPOS for re in rep]
+    print(REPOS)
     return [process_repo(repo) for repo in REPOS]
 
 
 if __name__ == "__main__":
+    REPOS = get_repos(51)
     data = scrape_github_data()
     json.dump(data, open("data.json", "w"), indent=1)
-
-
+    
+def main():
+    data = scrape_github_data()
+    json.dump(data, open("data.json", "w"), indent=1)
 #________________________________________________________________________________________________________________________________
 
 # PREPARE MODULE
@@ -193,7 +224,7 @@ def prepare_poker(Series):
     #clean_content = []
     stemmed_content = []
     lemmed_content = []
-    blogs_dict = {'content': original_content,
+    repos_dict = {'content': original_content,
     'stemmed_content': stemmed_content,
     'lemmed_content': lemmed_content}
     for i in range(0, len(Series)):
@@ -235,7 +266,7 @@ def prepare_poker(Series):
         content_lemmatized = ' '.join(lemmas)
         # add lemmed content to list:
         lemmed_content.append(content_lemmatized)
-    df = pd.DataFrame(blogs_dict)
+    df = pd.DataFrame(repos_dict)
     return df
 
 
@@ -365,7 +396,7 @@ def visualize_DTC(df):
     df[['training_accuracy', 'validate_accuracy', 'difference' ]].plot()
     plt.ylabel("accuracy")
     plt.xlabel("model number")
-    plt.vlines(x=[10], ymin=0, ymax=1, colors='r', linestyles='dashed')
+    # plt.vlines(x=[10], ymin=0, ymax=1, colors='r', linestyles='dashed')
     plt.title("DTC Models, performance on Train and Validate")
     plt.show()
 
@@ -411,7 +442,7 @@ def visualze_RFC(df):
     plt.title("Random Forest Model Accuracies")
     plt.ylabel("accuracy")
     plt.xlabel("model number")
-    plt.vlines(x=[163], ymin=0, ymax=1, colors='r', linestyles='dashed')
+    # plt.vlines(x=[163], ymin=0, ymax=1, colors='r', linestyles='dashed')
     plt.title("RFC Models, performance on Train and Validate")
     plt.show()
 
@@ -423,34 +454,34 @@ def visualze_RFC(df):
 
 def LRC_model_and_df(X_train, y_train, X_validate, y_validate):
     log_regress_outputs = []
-    for i in range(1,10):
+    i = 1
     # from sklearn.linear_model import LogisticRegression
-        logit = LogisticRegression(C=i, random_state=123, intercept_scaling=1, solver='lbfgs')
-        # Fit the Logistic Regression model
-        logit.fit(X_train, y_train)
-        # Get the predictions from the Logistic Regression Model
-        y_pred = logit.predict(X_train)
-        y_pred_proba = logit.predict_proba(X_train)
-        # compute the estimate accuracy
-        train_set_accuracy = logit.score(X_train, y_train)
-        #evaluate on out-of-sample-data
-        validate_set_accuracy = logit.score(X_validate, y_validate)
-        log_regress_outputs.append({
-                                    'c_values': i,
-                                    'training_accuracy': train_set_accuracy,
-                                    'validate_accuracy': validate_set_accuracy,
-                                    'train_val_diff': (train_set_accuracy - validate_set_accuracy)
-                                        })
+    logit = LogisticRegression(C=i, random_state=123, intercept_scaling=1, solver='lbfgs')
+    # Fit the Logistic Regression model
+    logit.fit(X_train, y_train)
+    # Get the predictions from the Logistic Regression Model
+    y_pred = logit.predict(X_train)
+    y_pred_proba = logit.predict_proba(X_train)
+    # compute the estimate accuracy
+    train_set_accuracy = logit.score(X_train, y_train)
+    #evaluate on out-of-sample-data
+    validate_set_accuracy = logit.score(X_validate, y_validate)
+    log_regress_outputs.append({
+                                'c_values': i,
+                                'training_accuracy': train_set_accuracy,
+                                'validate_accuracy': validate_set_accuracy,
+                                'train_val_diff': (train_set_accuracy - validate_set_accuracy)
+                                    })
     df = pd.DataFrame(log_regress_outputs)
-    return df.sort_values(['validate_accuracy', 'difference'], ascending = [False, True]).head(3)
+    return df.sort_values(['validate_accuracy', 'train_val_diff'], ascending = [False, True]).head(3)
 
 def visualze_LRC(df):    
     plt.figure(figsize=(15, 10))
     sns.set(font_scale = 1.3)
-    df[['training_accuracy', 'validate_accuracy', 'difference' ]].plot()
+    df[['training_accuracy', 'validate_accuracy', 'train_val_diff' ]].plot()
     plt.title("Logistic Regression Model Accuracies")
     plt.ylabel("accuracy")
     plt.xlabel("model number")
-    plt.vlines(x=[163], ymin=0, ymax=1, colors='r', linestyles='dashed')
+    # plt.vlines(x=[163], ymin=0, ymax=1, colors='r', linestyles='dashed')
     plt.title("RFC Models, performance on Train and Validate")
     plt.show()
