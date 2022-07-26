@@ -255,7 +255,7 @@ def get_labeled_df():
 
 #________________________________________________________________________________________________________________________________
 
-# MODEL PREP/MODELING
+# MODEL PREP
 
 #_____________________________________________________________________________
 
@@ -304,8 +304,12 @@ def split_and_vectorize(df):
     # print the split sizes as an internal check
     print(train.shape[0], validate.shape[0], test.shape[0])
     return train, validate, test
+#________________________________________________________________________________________________________________________________
+
+# MODELING
 
 #_____________________________________________________________________________
+
 
 def build_X_and_y(train, validate, test):
     X_train = train.drop(columns=['index', 'programming_language_99'])
@@ -317,6 +321,9 @@ def build_X_and_y(train, validate, test):
     X_test = test.drop(columns=['index', 'programming_language_99'])
     y_test = test.programming_language_99
     return X_train, y_train, X_validate, y_validate, X_test, y_test
+#_____________________________________________________________________________
+
+# Decision Tree Classifier
 
 def DTC_model_and_df(X_train, y_train, X_validate, y_validate):
     max_depth_list = []
@@ -350,8 +357,7 @@ def DTC_model_and_df(X_train, y_train, X_validate, y_validate):
                                         })
     df = pd.DataFrame(max_depth_list)
     df['difference'] = (df.training_accuracy - df.validate_accuracy)
-    df.sort_values(['validate_accuracy','difference'], ascending=[False, True]).head(3)
-    return df
+    return df.sort_values(['validate_accuracy','difference'], ascending=[False, True]).head(5)
 
 def visualize_DTC(df):
     plt.figure(figsize=(12, 9))
@@ -359,6 +365,92 @@ def visualize_DTC(df):
     df[['training_accuracy', 'validate_accuracy', 'difference' ]].plot()
     plt.ylabel("accuracy")
     plt.xlabel("model number")
-    plt.vlines(x=[1], ymin=0, ymax=1, colors='r', linestyles='dashed')
+    plt.vlines(x=[10], ymin=0, ymax=1, colors='r', linestyles='dashed')
+    plt.title("DTC Models, performance on Train and Validate")
     plt.show()
 
+#_____________________________________________________________________________
+
+# Random Forest Classifier
+
+def RFC_model_and_df(X_train, y_train, X_validate, y_validate):
+    # create an empty list to store the dictionaries
+    max_depth_and_leaf_samples_list = []
+    # write the for loop to sequentially loop through the values for i,
+    # setting i as the value, or inverse value, for 
+    for i in range(1, 16):
+        for j in range(1, 16):
+            # create the random forest object with desired hyper-parameters:
+            rf = RandomForestClassifier(max_depth=i, min_samples_leaf=j)
+            # fit the random forest to the training data:
+            rf.fit(X_train, y_train)
+            # Evaluate importance, or weight, of each feature.
+            rf.feature_importances_
+            # Classify each passenger by its estimated survival.
+            y_pred = rf.predict(X_train)
+            # Estimate the probability of survival, using the training data.
+            y_pred_proba = rf.predict_proba(X_train)
+            # compute the estimate accuracy
+            train_set_accuracy = rf.score(X_train, y_train)
+            #evaluate on out-of-sample-date
+            validate_set_accuracy = rf.score(X_validate, y_validate)
+            max_depth_and_leaf_samples_list.append({
+                                'max_depth': i,
+                                'min_samples_leaf': j,
+                                'training_accuracy': train_set_accuracy,
+                                'validate_accuracy': validate_set_accuracy,
+                                'difference': (train_set_accuracy - validate_set_accuracy)
+                                        })
+    df = pd.DataFrame(max_depth_and_leaf_samples_list)
+    return df.sort_values(['validate_accuracy', 'difference'], ascending = [False, True]).head(3)
+
+def visualze_RFC(df):    
+    plt.figure(figsize=(15, 10))
+    sns.set(font_scale = 1.3)
+    df[['training_accuracy', 'validate_accuracy', 'difference' ]].plot()
+    plt.title("Random Forest Model Accuracies")
+    plt.ylabel("accuracy")
+    plt.xlabel("model number")
+    plt.vlines(x=[163], ymin=0, ymax=1, colors='r', linestyles='dashed')
+    plt.title("RFC Models, performance on Train and Validate")
+    plt.show()
+
+
+
+#_____________________________________________________________________________
+
+# Logistic Regression Classifier
+
+def LRC_model_and_df(X_train, y_train, X_validate, y_validate):
+    log_regress_outputs = []
+    for i in range(1,10):
+    # from sklearn.linear_model import LogisticRegression
+        logit = LogisticRegression(C=i, random_state=123, intercept_scaling=1, solver='lbfgs')
+        # Fit the Logistic Regression model
+        logit.fit(X_train, y_train)
+        # Get the predictions from the Logistic Regression Model
+        y_pred = logit.predict(X_train)
+        y_pred_proba = logit.predict_proba(X_train)
+        # compute the estimate accuracy
+        train_set_accuracy = logit.score(X_train, y_train)
+        #evaluate on out-of-sample-data
+        validate_set_accuracy = logit.score(X_validate, y_validate)
+        log_regress_outputs.append({
+                                    'c_values': i,
+                                    'training_accuracy': train_set_accuracy,
+                                    'validate_accuracy': validate_set_accuracy,
+                                    'train_val_diff': (train_set_accuracy - validate_set_accuracy)
+                                        })
+    df = pd.DataFrame(log_regress_outputs)
+    return df.sort_values(['validate_accuracy', 'difference'], ascending = [False, True]).head(3)
+
+def visualze_LRC(df):    
+    plt.figure(figsize=(15, 10))
+    sns.set(font_scale = 1.3)
+    df[['training_accuracy', 'validate_accuracy', 'difference' ]].plot()
+    plt.title("Logistic Regression Model Accuracies")
+    plt.ylabel("accuracy")
+    plt.xlabel("model number")
+    plt.vlines(x=[163], ymin=0, ymax=1, colors='r', linestyles='dashed')
+    plt.title("RFC Models, performance on Train and Validate")
+    plt.show()
