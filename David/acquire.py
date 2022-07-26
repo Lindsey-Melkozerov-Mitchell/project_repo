@@ -25,24 +25,24 @@ from env import github_token, github_username
 # TODO: Add your github username to your env.py file under the variable `github_username`
 # TODO: Add more repositories to the `REPOS` list below.
 
-def get_repos(n):
-    all_repos = []
-    for page in range(1, n):
-        url = f'https://github.com/search?p={page}&q=poker&type=Repositories'
-        headers = {"Authorization": f"token {github_token}", "User-Agent": github_username}
-        while True:
-            response = get(url, headers=headers)
-            if response.ok:
-                break
-            else:
-                time.sleep(15)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        repo = [a.text for a in soup.find_all('a', class_='v-align-middle')]
-        all_repos = all_repos + repo
-        print(f'\rFetching page {page} of {n-1} {url}', end='')
-    return all_repos
+# def get_repos(n):
+#     all_repos = []
+#     for page in range(1, n):
+#         url = f'https://github.com/search?p={page}&q=poker&type=Repositories'
+#         headers = {"Authorization": f"token {github_token}", "User-Agent": github_username}
+#         while True:
+#             response = get(url, headers=headers)
+#             if response.ok:
+#                 break
+#             else:
+#                 time.sleep(15)
+#         soup = BeautifulSoup(response.text, 'html.parser')
+#         repo = [a.text for a in soup.find_all('a', class_='v-align-middle')]
+#         all_repos = all_repos + repo
+#         print(f'\rFetching page {page} of {n-1} {url}', end='')
+#     return all_repos
 
-REPOS = get_repos(51)
+# REPOS = get_repos(51)
 
 headers = {"Authorization": f"token {github_token}", "User-Agent": github_username}
 
@@ -128,4 +128,3 @@ def scrape_github_data() -> List[Dict[str, str]]:
 if __name__ == "__main__":
     data = scrape_github_data()
     json.dump(data, open("data.json", "w"), indent=1)
-    
