@@ -3,7 +3,7 @@
 - by David Mitchell , Fred Lindsey, and Vasiliy Melkozerov Jul 25, 2020
 
 <img src="poker_nlp_banner.jpg" width="100%" height="300-">
-
+<a href="https://www.beautiful.ai/player/-N7umi5ppn79XWs4cgVK/Untitled-2">Slide deck</a>
 
 ## Project description:
 
