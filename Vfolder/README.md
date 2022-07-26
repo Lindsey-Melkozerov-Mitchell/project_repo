@@ -35,8 +35,11 @@ The purpose and goal of this project is to be able to model programming language
 | stemmed_content | 418 non-null: object | Stemmed words using PorterStemmer|
 | lemmed_content | 418 non-null: object | Lemmed words using WordNetLemmatizer |
 
-
-## Findings/ Takeaways
+## Takeaway:
+- the best perfoming classifier was a Decision Tree Classifier with a max depth value of 9
+- however, the most robust DTC model was max depth 5, with a train/val difference of 13%, vs the higher performing model's 18.7% train/val difference.
+- Due to the higher reliability predicting performance on the out-of-sample validation data, I'm going to deploy the more robust DTC model with max depth 5 on the test data, for the final prediction
+- The final DTC model performed with a prediction accuracy of 40% on test data, higher than initial performance on validate data. While this is a generally good indicator, more refinement is needed on this model before I can recommend it for deployment as a predictive.
 
 ## How to reproduce:
 1. Get your own env setup github api keys and 
