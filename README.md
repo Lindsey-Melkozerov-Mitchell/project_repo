@@ -7,9 +7,7 @@
 
 ## Project description:
 
-What had happened was that we scarped github to see what words came up in different languages, now we gotta look for the big tings
-
-The purpose and goal of this project is to be able to model programming languages based off of words used in project README.md
+The purpose and goal of this project is to be able to model programming languages based off of words used in project README.md. The corpus will be formed from the collection of texts from Github repositories that come up in findings when looking for the word "poker". After cleaning and exploring the data we have one ML model that will predict the programming language.
 
 ## Guiding questions:
 - What are the most common words in READMEs?
